@@ -1,13 +1,15 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js"
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 
 app.get("/health", (req, res) => {

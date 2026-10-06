@@ -1,6 +1,7 @@
-import {signupSchema} from "../validator/authValidator.js";
+import {signupSchema, loginSchema} from "../validator/authValidator.js";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
     const result = signupSchema.safeParse(req.body)
@@ -19,8 +20,6 @@ export const register = async (req, res) => {
     const newUser = new User({name, email, passwordHash, role})
 
     await newUser.save();
-    // const user = newUser.toObject();
-    // delete user.passwordHash;
     const user = {
         _id: newUser._id,
         name: newUser.name,
@@ -33,4 +32,61 @@ export const register = async (req, res) => {
     
     
     
+}
+
+export const login = async (req, res) => {
+    const result = loginSchema.safeParse(req.body)
+    if (!result.success){
+        return res.status(400).json({message:"Invalid Input"})
+    }
+    const {email, password} = result.data
+    const loginUser = await User.findOne({email:email})
+    if (!loginUser|| !await bcrypt.compare(password, loginUser.passwordHash)){
+        return res.status(401).json({message:"Invalid email or password"})
+    }
+    const accessToken = jwt.sign({sub: loginUser._id, role: loginUser.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
+    const refToken = jwt.sign({sub:loginUser._id}, process.env.JWT_REFRESH_SECRET, {expiresIn:"7d"})
+
+    res.cookie(
+        "refreshToken", 
+        refToken, 
+        {
+            httpOnly:true, 
+            sameSite: "strict", 
+            secure:process.env.NODE_ENV === "production", 
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        }
+    ).status(200).json({
+        accessToken:accessToken,
+        user_id:loginUser._id,
+        name:loginUser.name,
+        email:loginUser.email,
+        role:loginUser.role
+    })
+}
+
+export const refresher = async (req, res) =>{
+    const refToken = req.cookies.refreshToken;
+    
+    if (!refToken){
+        return res.status(401).json({message:"Refresh token not found"})
+    }
+    try{
+        const decoded = jwt.verify(refToken, process.env.JWT_REFRESH_SECRET);
+        const user = await User.findOne({ _id: decoded.sub });
+        if (!user){
+            return res.status(401).json({message:"User not found"})
+        }
+
+        const accessToken = jwt.sign({sub: user._id, role: user.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
+        res.status(200).json({
+            accessToken:accessToken,
+            user_id:user._id,
+            name:user.name,
+            email:user.email,
+            role:user.role
+        })
+    }catch(err){
+        return res.status(401).json({message:"Invalid refresh token"})
+    }
 }
