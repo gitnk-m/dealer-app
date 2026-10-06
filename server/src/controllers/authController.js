@@ -9,7 +9,7 @@ export const register = async (req, res) => {
         return res.status(400).json({message:"Invalid Input", error:result.error.issues})
     }
     
-    const {name, email, password, role} = result.data;
+    const {name, email, password} = result.data;
 
     const duplicateUser = await User.findOne({email: email})
     if (duplicateUser){
@@ -17,7 +17,7 @@ export const register = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const newUser = new User({name, email, passwordHash, role})
+    const newUser = new User({name, email, passwordHash, role:"executive"})
 
     await newUser.save();
     const user = {
@@ -71,9 +71,13 @@ export const refresher = async (req, res) =>{
     if (!refToken){
         return res.status(401).json({message:"Refresh token not found"})
     }
+    let decoded;
     try{
-        const decoded = jwt.verify(refToken, process.env.JWT_REFRESH_SECRET);
-        const user = await User.findOne({ _id: decoded.sub });
+        decoded = jwt.verify(refToken, process.env.JWT_REFRESH_SECRET);
+    }catch(err){
+        return res.status(401).json({message:"Invalid refresh token"})
+    }
+    const user = await User.findById(decoded.sub);
         if (!user){
             return res.status(401).json({message:"User not found"})
         }
@@ -86,7 +90,4 @@ export const refresher = async (req, res) =>{
             email:user.email,
             role:user.role
         })
-    }catch(err){
-        return res.status(401).json({message:"Invalid refresh token"})
-    }
 }
