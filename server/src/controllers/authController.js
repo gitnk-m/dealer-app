@@ -6,7 +6,7 @@ const register = async (req, res) => {
     const result = signupSchema.safeParse(req.body)
     // const {name, email, password, role} = req.body;
     if (!result.success){
-        res.status(400).json({message:"Invalid Input", error:result.error.issues})
+        return res.status(400).json({message:"Invalid Input", error:result.error.issues})
     }
     
     const {name, email, password, role} = result.data;
