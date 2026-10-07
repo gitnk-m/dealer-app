@@ -10,10 +10,8 @@ const authRouter = express.Router()
 authRouter.post("/register", requireAuth,requireRole("admin"), register)
 authRouter.post("/login", login)
 authRouter.post("/refresh", refresher)
-authRouter.post("/logout", requireAuth, logout)
+authRouter.post("/logout", logout)
 
-authRouter.get("/me", requireAuth, async (req, res) => {
-    
-})
+authRouter.get("/me", requireAuth, getMe)
 
 export default authRouter

@@ -16,4 +16,4 @@ const seedAdmin = async () => {
     }
 }
 
-// seedAdmin()
+seedAdmin()
