@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["executive", "admin"],
         default: "executive"
+    },
+    refreshTokenHash:{
+        type: String,
+        default: null
     }
 },{
     timestamps: true

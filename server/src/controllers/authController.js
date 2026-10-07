@@ -9,7 +9,7 @@ export const register = async (req, res) => {
         return res.status(400).json({message:"Invalid Input", error:result.error.issues})
     }
     
-    const {name, email, password} = result.data;
+    const {name, email, password, role} = result.data;
 
     const duplicateUser = await User.findOne({email: email})
     if (duplicateUser){
@@ -17,7 +17,7 @@ export const register = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const newUser = new User({name, email, passwordHash, role:"executive"})
+    const newUser = new User({name, email, passwordHash, role:role||"executive"})
 
     await newUser.save();
     const user = {
@@ -46,6 +46,10 @@ export const login = async (req, res) => {
     }
     const accessToken = jwt.sign({sub: loginUser._id, role: loginUser.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
     const refToken = jwt.sign({sub:loginUser._id}, process.env.JWT_REFRESH_SECRET, {expiresIn:"7d"})
+
+    const refreshTokenHash = await sha256(refToken)
+    loginUser.refreshTokenHash = refreshTokenHash;
+    await loginUser.save();
 
     res.cookie(
         "refreshToken", 
@@ -78,16 +82,41 @@ export const refresher = async (req, res) =>{
         return res.status(401).json({message:"Invalid refresh token"})
     }
     const user = await User.findById(decoded.sub);
-        if (!user){
-            return res.status(401).json({message:"User not found"})
-        }
+    const refreshTokenHash = await sha256(refToken)
+    if (user.refreshTokenHash !== refreshTokenHash){
+        return res.status(401).json({message:"Invalid refresh token"})
+    }
+    if (!user){
+        return res.status(401).json({message:"User not found"})
+    }
 
-        const accessToken = jwt.sign({sub: user._id, role: user.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
-        res.status(200).json({
-            accessToken:accessToken,
-            user_id:user._id,
-            name:user.name,
-            email:user.email,
-            role:user.role
-        })
+    const accessToken = jwt.sign({sub: user._id, role: user.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
+    res.status(200).json({
+        accessToken:accessToken,
+        user_id:user._id,
+        name:user.name,
+        email:user.email,
+        role:user.role
+    })
 }
+
+export const logout = async (req, res) => {
+    const refToken = req.cookies.refreshToken;
+    if (!refToken){
+        return res.status(401).json({message:"Refresh token not found"}).clearCookie("refreshToken")
+    }
+    let decoded;
+    try{
+        decoded = jwt.verify(refToken, process.env.JWT_REFRESH_SECRET);
+    }catch(err){
+        return res.status(401).json({message:"Invalid refresh token"})
+    }
+    const user = await User.findById(decoded.sub);
+    if (!user){
+        return res.status(401).json({message:"User not found"}).clearCookie("refreshToken")
+    }
+    user.refreshTokenHash = null;
+    await user.save();
+    res.clearCookie("refreshToken").status(200).json({message:"Logged out successfully"})
+}
+    
