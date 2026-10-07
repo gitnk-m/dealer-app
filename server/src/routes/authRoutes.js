@@ -3,8 +3,6 @@ import {register, login, refresher, logout} from "../controllers/authController.
 import {requireAuth, requireRole} from "../middleware/auth.js"
 import {getMe} from "../controllers/getmeController.js"
 
-import User from "../models/User.js"
-
 const authRouter = express.Router()
 
 authRouter.post("/register", requireAuth,requireRole("admin"), register)

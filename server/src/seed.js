@@ -1,5 +1,5 @@
-import User from "./models/User.js"
 import "dotenv/config"
+import User from "./models/User.js"
 import bcrypt from "bcrypt"
 import mongoose from "mongoose"
 import connectDB from "./config/db.js"
@@ -23,13 +23,13 @@ const seedAdmin = async () => {
 
 async function main() {
 
+    await connectDB()
     const exist = await User.exists({role:"admin"})
     if (exist){
         console.log("Admin user already exists. Skipping seeding.")
-        return
+    }else{
+        await seedAdmin()
     }
-    await connectDB()
-    await seedAdmin()
     await mongoose.disconnect()
 }
 
