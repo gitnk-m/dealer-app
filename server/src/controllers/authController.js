@@ -116,7 +116,7 @@ export const logout = async (req, res) => {
     }
     const user = await User.findById(decoded.sub);
     if (!user){
-        return res.status(401).clearCookie("refreshToken").json({message:"User not found"})
+        return res.status(200).clearCookie("refreshToken").json({message:"User not found"})
     }
     user.refreshTokenHash = null;
     await user.save();

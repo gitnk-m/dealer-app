@@ -1,3 +1,5 @@
+import User from "../models/User.js"
+
 export const getMe = async (req, res) => {
     const userdetails = await User.findById(req.user.id)
     if (!userdetails) {
