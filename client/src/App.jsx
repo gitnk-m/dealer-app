@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 import { api } from './api/client'
 
 function App() {
-  const [email, setEmail] = useState(null);
-  const [password, setPassword] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   
@@ -13,15 +13,20 @@ function App() {
     e.preventDefault();
     try{
       const userAuth = await api.post("/auth/login", {email,password})
-      setUser(`Logged in as ${userAuth.data.name} (${userAuth.data.role})`)
-      setEmail(null)
-      setPassword(null)
+      setUser(userAuth.data)
+      setEmail("")
+      setPassword("")
       setError(null)
     }catch(err){
-      setEmail(null)
-      setPassword(null)
+      if (err.response?.status == 401){
+        setError("Invalid Username or Password")
+      }else{
+        setError("Could not reach the server")
+      }
+      setEmail("")
+      setPassword("")
       setUser(null)
-      setError("Invalid Username or Password")
+      
     }
   }
 
@@ -30,20 +35,22 @@ function App() {
     <>
       <div className="App">
         <h1>Dealer Management</h1>
-        <form className="card" onSubmit={handleSubmit}>
+        {!user && <form className="card" onSubmit={handleSubmit}>
           <input 
             type="email" 
             placeholder="Email" 
+            value={email}
             onChange={(e) => setEmail(e.target.value)} 
           />
           <input 
             type="password" 
             placeholder="Password" 
+            value={password}
             onChange={(e) => setPassword(e.target.value)} 
           />
           <button>Login</button>
-        </form>
-        <p>{user}</p>
+        </form>}
+        {user && <p>Logged in as {user.name} ({user.role})</p>}
         <p>{error}</p>
       </div>
     </>
