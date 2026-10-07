@@ -2,6 +2,9 @@ import {signupSchema, loginSchema} from "../validator/authValidator.js";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
+
+const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
 
 export const register = async (req, res) => {
     const result = signupSchema.safeParse(req.body)
@@ -47,7 +50,7 @@ export const login = async (req, res) => {
     const accessToken = jwt.sign({sub: loginUser._id, role: loginUser.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
     const refToken = jwt.sign({sub:loginUser._id}, process.env.JWT_REFRESH_SECRET, {expiresIn:"7d"})
 
-    const refreshTokenHash = await sha256(refToken)
+    const refreshTokenHash = sha256(refToken)
     loginUser.refreshTokenHash = refreshTokenHash;
     await loginUser.save();
 
@@ -82,12 +85,12 @@ export const refresher = async (req, res) =>{
         return res.status(401).json({message:"Invalid refresh token"})
     }
     const user = await User.findById(decoded.sub);
-    const refreshTokenHash = await sha256(refToken)
-    if (user.refreshTokenHash !== refreshTokenHash){
-        return res.status(401).json({message:"Invalid refresh token"})
-    }
     if (!user){
         return res.status(401).json({message:"User not found"})
+    }
+    const refreshTokenHash = sha256(refToken)
+    if (user.refreshTokenHash !== refreshTokenHash){
+        return res.status(401).json({message:"Invalid refresh token"})
     }
 
     const accessToken = jwt.sign({sub: user._id, role: user.role}, process.env.JWT_ACCESS_SECRET, {expiresIn:"15m"}) 
@@ -103,17 +106,17 @@ export const refresher = async (req, res) =>{
 export const logout = async (req, res) => {
     const refToken = req.cookies.refreshToken;
     if (!refToken){
-        return res.status(401).json({message:"Refresh token not found"}).clearCookie("refreshToken")
+        return res.status(200).clearCookie("refreshToken").json({message:"Refresh token not found"})
     }
     let decoded;
     try{
         decoded = jwt.verify(refToken, process.env.JWT_REFRESH_SECRET);
     }catch(err){
-        return res.status(401).json({message:"Invalid refresh token"})
+        return res.status(200).clearCookie("refreshToken").json({message:"Invalid refresh token"})
     }
     const user = await User.findById(decoded.sub);
     if (!user){
-        return res.status(401).json({message:"User not found"}).clearCookie("refreshToken")
+        return res.status(401).clearCookie("refreshToken").json({message:"User not found"})
     }
     user.refreshTokenHash = null;
     await user.save();
