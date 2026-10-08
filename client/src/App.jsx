@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { api } from './api/client'
+import { api, setAccessToken } from './api/client'
 
 function App() {
   const [email, setEmail] = useState("");
@@ -14,22 +14,40 @@ function App() {
     try{
       const userAuth = await api.post("/auth/login", {email,password})
       setUser(userAuth.data)
+      setAccessToken(userAuth.data.accessToken)
       setEmail("")
       setPassword("")
       setError(null)
     }catch(err){
-      if (err.response?.status == 401){
-        setError("Invalid Username or Password")
+      if (err.response?.status === 401){
+        try{
+          const userRef = await api.post("/auth/refresh")
+          setUser(userRef.data)
+          setAccessToken(userRef.data.accessToken)
+          setEmail("")
+          setPassword("")
+          setError(null)
+        }catch(errRef){
+          setError("Invalid Username or Password")
+        }
       }else{
         setError("Could not reach the server")
       }
-      setEmail("")
       setPassword("")
       setUser(null)
       
     }
   }
 
+  // const checkMe = async(e) =>{
+  //   e.preventDefault();
+  //   try{
+  //     const check = await api.get("/auth/me")
+  //     console.log(check)
+  //   }catch(err){
+  //     console.log(err)
+  //   }
+  // }
 
   return (
     <>
@@ -52,6 +70,7 @@ function App() {
         </form>}
         {user && <p>Logged in as {user.name} ({user.role})</p>}
         <p>{error}</p>
+        {/* {user && <button onClick={checkMe}>Check</button>} */}
       </div>
     </>
   )
