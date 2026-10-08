@@ -20,16 +20,7 @@ function App() {
       setError(null)
     }catch(err){
       if (err.response?.status === 401){
-        try{
-          const userRef = await api.post("/auth/refresh")
-          setUser(userRef.data)
-          setAccessToken(userRef.data.accessToken)
-          setEmail("")
-          setPassword("")
-          setError(null)
-        }catch(errRef){
-          setError("Invalid Username or Password")
-        }
+        setError("Invalid Username or Password")
       }else{
         setError("Could not reach the server")
       }
@@ -39,15 +30,15 @@ function App() {
     }
   }
 
-  // const checkMe = async(e) =>{
-  //   e.preventDefault();
-  //   try{
-  //     const check = await api.get("/auth/me")
-  //     console.log(check)
-  //   }catch(err){
-  //     console.log(err)
-  //   }
-  // }
+  const checkMe = async(e) =>{
+    e.preventDefault();
+    try{
+      const check = await api.get("/auth/me")
+      console.log(check)
+    }catch(err){
+      console.log(err)
+    }
+  }
 
   return (
     <>
@@ -70,7 +61,7 @@ function App() {
         </form>}
         {user && <p>Logged in as {user.name} ({user.role})</p>}
         <p>{error}</p>
-        {/* {user && <button onClick={checkMe}>Check</button>} */}
+        {user && <button onClick={checkMe}>Check</button>}
       </div>
     </>
   )
