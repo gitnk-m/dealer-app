@@ -3,22 +3,18 @@ import { useAuth } from "../auth/useAuth";
 import { useState } from "react";
 
 export default function LoginPage (){
-    const {user, login} = useAuth();
-    const [email, setEmail] = useState();
+    const {user, login, loading} = useAuth();
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     
-    if(user){
-        return <Navigate to="/" replace/>
-    }
+    if (loading) return <p>Loading...</p>
+    if (user) return <Navigate to="/" replace/>
 
     const handleSubmit = async (e) =>{
         e.preventDefault();
         try{
           await login(email, password);
-          setEmail("")
-          setPassword("")
-          setError(null)
         }catch(err){
           if (err.response?.status === 401){
             setError("Invalid Username or Password")
@@ -48,7 +44,6 @@ export default function LoginPage (){
           />
           <button>Login</button>
         </form>}
-        {user && <p>Logged in as {user.name} ({user.role})</p>}
         <p>{error}</p>
       </div>
     </>

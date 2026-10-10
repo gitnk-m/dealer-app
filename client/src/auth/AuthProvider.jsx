@@ -18,6 +18,7 @@ export const AuthProvider = ({children}) =>{
                     role:userAuth.data.role,
                 })
             }catch{
+                 // no valid session
             }finally{
                 setLoading(false);
             }
