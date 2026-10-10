@@ -17,6 +17,7 @@ export const AuthProvider = ({children}) =>{
                     email:userAuth.data.email,
                     role:userAuth.data.role,
                 })
+            }catch{
             }finally{
                 setLoading(false);
             }
@@ -26,18 +27,14 @@ export const AuthProvider = ({children}) =>{
     },[]);
 
     const login = async(email, password)=>{
-        try{
-            const userAuth = await api.post("/auth/login", {email,password})
-            setUser({
-                    userId:userAuth.data.user_id,
-                    name:userAuth.data.name, 
-                    email:userAuth.data.email,
-                    role:userAuth.data.role,
-                })
-            setAccessToken(userAuth.data.accessToken)
-        }finally{
-            setLoading(false)
-        }
+        const userAuth = await api.post("/auth/login", {email,password})
+        setUser({
+                userId:userAuth.data.user_id,
+                name:userAuth.data.name, 
+                email:userAuth.data.email,
+                role:userAuth.data.role,
+            })
+        setAccessToken(userAuth.data.accessToken)
     }
 
     const logout = async() =>{
