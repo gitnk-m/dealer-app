@@ -12,4 +12,4 @@ authRouter.post("/logout", logout)
 
 authRouter.get("/me", requireAuth, getMe)
 
-export default authRouter
+export default authRouter;

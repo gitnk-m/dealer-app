@@ -31,10 +31,7 @@ export const register = async (req, res) => {
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt
     }
-    res.status(201).json({message:"User registered successfully", data:user})
-    
-    
-    
+    res.status(201).json({message:"User registered successfully", data:user});
 }
 
 export const login = async (req, res) => {

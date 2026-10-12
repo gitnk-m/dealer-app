@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js"
+import vehicleRoutes from "./routes/vehicleRoutes.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -16,7 +17,8 @@ app.get("/health", (req, res) => {
     res.status(200).json({status: "ok", db: mongoose.connection.readyState });
 });
 
-app.use("/api/auth",authRoutes)
+app.use("/api/auth",authRoutes);
+app.use("/api/vehicles", vehicleRoutes)
 
 
 app.use(errorHandler)

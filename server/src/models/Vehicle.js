@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+export const vehicleStatusEnum = ["in_stock", "booked", "retail", "insured", "rto", "registered", "returned", "transferred"]
 const vehicleSchema = new mongoose.Schema({
     chassisNo:{
         type: String,
@@ -31,7 +32,7 @@ const vehicleSchema = new mongoose.Schema({
     },
     status:{
         type: String,
-        enum: ["in_stock", "booked", "retail", "insured", "rto", "registered", "returned", "transferred"],
+        enum: vehicleStatusEnum,
         default: "in_stock"
     },
 },{
