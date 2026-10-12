@@ -31,7 +31,7 @@ const vehicleSchema = new mongoose.Schema({
     },
     status:{
         type: String,
-        enum: ["in_stock", "booked", "retail", "insured", "rto", "registred", "returned", "transfered"],
+        enum: ["in_stock", "booked", "retail", "insured", "rto", "registered", "returned", "transferred"],
         default: "in_stock"
     },
 },{
