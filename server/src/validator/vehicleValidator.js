@@ -1,15 +1,6 @@
 import * as z from "zod";
 import { vehicleStatusEnum } from "../models/Vehicle.js";
 
-export const addVehicleSchema = z.object({
-    chassisNo : z.string().trim().uppercase(),
-    engineNo : z.string().trim().uppercase(),
-    model : z.string().trim(),
-    variant : z.string().trim(),
-    colour : z.string().trim(),
-    status : z.enum(vehicleStatusEnum).default("in_stock")
-});
-
 export const listVehicleSchema = z.object({
     page : z.coerce.number().int().min(1).default(1),
     limit : z.coerce.number().int().min(1).max(50).default(10),
@@ -17,4 +8,10 @@ export const listVehicleSchema = z.object({
     model:z.string().trim().min(1).optional()
 })
 
-export const updateVehicleSchema = addVehicleSchema.partial();
+export const updateVehicleSchema = z.strictObject({
+    colour: z.string().trim().min(1).optional(),
+    variant: z.string().trim().min(1).optional(),
+    engineNo: z.string().trim().uppercase().min(1).optional(),
+}).refine((data)=>Object.keys(data).length > 0,{
+    message:"Send at least one field",
+});
