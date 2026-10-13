@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { vehicleStatusEnum } from "../models/Vehicle";
+import { vehicleStatusEnum } from "../models/Vehicle.js";
 
 export const addVehicleSchema = z.object({
     chassisNo : z.string().trim().uppercase(),

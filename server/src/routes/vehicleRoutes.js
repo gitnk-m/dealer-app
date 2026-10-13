@@ -4,6 +4,6 @@ import { requireAuth} from "../middleware/auth.js";
 
 const vehicleRoutes = express.Router();
 
-vehicleRouter.get("/", requireAuth, listVehicle)
+vehicleRoutes.get("/", requireAuth, listVehicle)
 
 export default vehicleRoutes;
