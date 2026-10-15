@@ -11,7 +11,7 @@ export const listVehicleSchema = z.object({
 export const updateVehicleSchema = z.strictObject({
     colour: z.string().trim().min(1).optional(),
     variant: z.string().trim().min(1).optional(),
-    engineNo: z.string().trim().uppercase().min(1).optional(),
+    engineNo: z.string().trim().toUpperCase().min(1).optional(),
 }).refine((data)=>Object.keys(data).length > 0,{
     message:"Send at least one field",
 });

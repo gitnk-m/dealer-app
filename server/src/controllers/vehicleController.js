@@ -15,7 +15,6 @@ export const listVehicle = async(req, res) =>{
         Vehicle.find(filter).sort({createdAt : -1}).skip(skip).limit(limit),
         Vehicle.countDocuments(filter)
     ])
-    // if (!vehicles || !total) return res.status(400).json({message:"Invalid Input"})
     res.status(200).json({
         vehicles:vehicles, 
         page:page, 
@@ -37,7 +36,7 @@ export const updateVehicle = async(req, res) =>{
     const id = req.params.id;
     if (!mongoose.isValidObjectId(id)) return res.status(400).json({message:"Invalid Id"})
     const result = updateVehicleSchema.safeParse(req.body);
-    if (!result.success) return res.status(400).json({message:"Invalid Query Params", error:result.error.issues})
+    if (!result.success) return res.status(400).json({message:"Invalid input", error:result.error.issues})
     try{
         const vehicle = await Vehicle.findByIdAndUpdate(
             id,
