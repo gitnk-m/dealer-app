@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const purchaseSchema = new mongoose.Schema({
+const stockSchema = new mongoose.Schema({
     vehicle:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Vehicle",
@@ -14,7 +14,7 @@ const purchaseSchema = new mongoose.Schema({
     type:{
         type: String,
         required: true,
-        enum: ["purchase", "return"]
+        enum: ["purchase", "return", "transfer"]
     },
     date:{
         type: Date,
@@ -30,7 +30,7 @@ const purchaseSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
-    purchasePrice:{
+    amount:{
         type: Number,
         required: true,
         min: 0
@@ -44,4 +44,4 @@ const purchaseSchema = new mongoose.Schema({
     timestamps: true
 });
 
-export default mongoose.model("PurchaseEntry", purchaseSchema, "purchaseentries");
+export default mongoose.model("StockEntry", stockSchema, "stockentries");
