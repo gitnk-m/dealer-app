@@ -14,7 +14,7 @@ const stockSchema = new mongoose.Schema({
     type:{
         type: String,
         required: true,
-        enum: ["purchase", "return"]
+        enum: ["purchase", "return", "transfer"]
     },
     date:{
         type: Date,
@@ -30,7 +30,7 @@ const stockSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
-    purchasePrice:{
+    amount:{
         type: Number,
         required: true,
         min: 0
