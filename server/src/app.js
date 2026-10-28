@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js"
 import vehicleRoutes from "./routes/vehicleRoutes.js";
+import stockRoutes from "./routes/stockRoutes.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -19,6 +20,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth",authRoutes);
 app.use("/api/vehicles", vehicleRoutes)
+app.use("/api/stock", stockRoutes)
 
 
 app.use(errorHandler)
