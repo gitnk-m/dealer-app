@@ -36,6 +36,7 @@ export const stockIn = async(req, res) =>{
                     colour:colour
                 }) 
                 await vehicle.save({session})
+                // if (billNo === "FAIL") throw new Error("forced rollback test");
             }else if(existing.status === "returned" || existing.status === "transferred"){
                 if (existing.engineNo !== engineNo) {
                     const err = new Error("Engine number doesn't match this chassis");
