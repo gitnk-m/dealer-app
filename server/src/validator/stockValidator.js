@@ -12,3 +12,9 @@ export const stockInwardSchema = z.strictObject({
     exShowroomPrice : z.number().int().min(0),
     amount : z.number().int().min(0)
 })
+
+export const stockReturnSchema = z.strictObject({
+    chassisNo : z.string().trim().toUpperCase().min(1),
+    billNo : z.string().trim().min(1),
+    date : z.iso.date().refine((d) => new Date(d) <= new Date(), "Return date can't be in the future"),
+})
