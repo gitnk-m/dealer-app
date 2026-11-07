@@ -10,22 +10,26 @@ export const createVendor = async(req, res) =>{
     if (duplicateName){
         return res.status(409).json({message:"Vendor already exists"})
     }
-
-    const newVendor = new Vendor({name,phone,address})
-    await newVendor.save()
-    const vendor = {
-        _id:newVendor._id,
-        name:newVendor.name,
-        phone:newVendor.phone,
+    try{
+        const newVendor = new Vendor({name,phone,address})
+        await newVendor.save()
+        const vendor = {
+            _id:newVendor._id,
+            name:newVendor.name,
+            phone:newVendor.phone,
+        }
+        res.status(201).json({message:"Vendor created successfully", data:vendor})
+    }catch(err){
+        if (err.code === 11000) return res.status(409).json({message:"Vendor name already exists"});
+        throw err;
     }
-    res.status(201).json({message:"Vendor created successfully", data:vendor})
 }
 
 export const listVendors = async(req, res) =>{
     const result = listVendorSchema.safeParse(req.query);
     if (!result.success) return res.status(400).json({message:"Invalid Query Params", error:result.error.issues})
     const filter = {}
-    if (result.data.active) filter.isActive = result.data.active;
+    if (result.data.active !== undefined) filter.isActive = result.data.active;
     const vendors = await Vendor.find(filter).sort({name:1});
     res.status(200).json({message:"Vendors listed successfully", data:vendors})
 }
