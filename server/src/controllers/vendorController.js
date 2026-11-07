@@ -23,9 +23,10 @@ export const createVendor = async(req, res) =>{
 
 export const listVendors = async(req, res) =>{
     const result = listVendorSchema.safeParse(req.query);
-    console.log(result)
     if (!result.success) return res.status(400).json({message:"Invalid Query Params", error:result.error.issues})
-    const vendors = await Vendor.find({isActive: result.data.active}).sort({name:1});
+    const filter = {}
+    if (result.data.active) filter.isActive = result.data.active;
+    const vendors = await Vendor.find(filter).sort({name:1});
     res.status(200).json({message:"Vendors listed successfully", data:vendors})
 }
 
@@ -34,7 +35,7 @@ export const getVendor = async(req, res) =>{
     if (!mongoose.isValidObjectId(id)) return res.status(400).json({message:"Invalid Id"})
     const vendor = await Vendor.findById(id);
     if (!vendor) return res.status(404).json({message:"Vendor not found"});
-    return res.status(200).json({vendor:vendor})   
+    return res.status(200).json({data:vendor})   
 }
 
 export const updateVendor = async(req, res) =>{
@@ -42,13 +43,17 @@ export const updateVendor = async(req, res) =>{
     if (!mongoose.isValidObjectId(id)) return res.status(400).json({message:"Invalid Id"})
     const result = updateVendorSchema.safeParse(req.body);
     if (!result.success) return res.status(400).json({message:"Invalid input", error:result.error.issues})
-    const vendor = await Vendor.findByIdAndUpdate(
-        id,
-        result.data,
-        {returnDocument : "after", runValidators : true}
-    )
-    if (!vendor) return res.status(404).json({message:"Vendor not found"});
-    return res.status(200).json({message:"Vendor updated successfully", data:vendor})
-        
+    try{
+        const vendor = await Vendor.findByIdAndUpdate(
+            id,
+            result.data,
+            {returnDocument : "after", runValidators : true}
+        )
+        if (!vendor) return res.status(404).json({message:"Vendor not found"});
+        return res.status(200).json({message:"Vendor updated successfully", data:vendor})
+    }catch(err){
+        if (err.code === 11000) return res.status(409).json({message:"Vendor name already exists"});
+        throw err;
+    }
 }
 
