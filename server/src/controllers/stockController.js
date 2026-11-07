@@ -1,4 +1,4 @@
-import { stockInwardSchema } from "../validator/stockValidator.js";
+import { stockInwardSchema, stockReturnSchema } from "../validator/stockValidator.js";
 import Vehicle from "../models/Vehicle.js";
 import mongoose from "mongoose";
 import Vendor from "../models/Vendor.js";
@@ -80,30 +80,39 @@ export const stockReturn = async(req, res) => {
     const stockVal = stockReturnSchema.safeParse(req.body);
     if (!stockVal.success) return res.status(400).json({message:"Invalid Input", error:stockVal.error.issues});
     const { chassisNo, billNo, date } = stockVal.data;
-    try{
-        const result = await mongoose.connection.transaction(async(session)=>{
-            const vehicle = await Vehicle.findOne({ chassisNo: chassisNo }).session(session);
-            if (!vehicle) return res.status(404).json({message:"Vehicle not found"});
-            if (vehicle.status !== "in_stock") return res.status(409).json({message:"Vehicle is not in stock, cannot return"});
-            const previousTrans = StockEntry.findOne({ vehicle: vehicle._id, type: "purchase"})
-                .sort({ date: -1, createdAt: -1 })
-                .session(session)
-            if (!previousTrans) return res.status(404).json({message:"No purchase record found for this vehicle"});
-            const newEntry = new StockEntry({
-                vehicle: vehicle._id,
-                vendor: previousTrans.vendor,
-                type: "return",
-                billNo: billNo,
-                date: new Date(date),
-                exShowroomPrice: previousTrans.exShowroomPrice,
-            })
-            await newEntry.save({session})
-            vehicle.status = "returned"
-            await vehicle.save({session})
-            return {vehicle, newEntry} 
+    const result = await mongoose.connection.transaction(async(session)=>{
+        const vehicle = await Vehicle.findOne({ chassisNo: chassisNo }).session(session);
+        if (!vehicle) {
+            const err = new Error("Vehicle not found");
+            err.status = 404;
+            throw err;
+        }
+        if (vehicle.status !== "in_stock"){
+            const err = new Error("Vehicle is not in stock");
+            err.status = 409;
+            throw err;
+        }
+        const previousTrans = StockEntry.findOne({ vehicle: vehicle._id, type: "purchase"})
+            .sort({ date: -1, createdAt: -1 })
+            .session(session)
+        if (!previousTrans) {
+            const err = new Error("No purchase record found for this vehicle");
+            err.status = 404;
+            throw err;
+        }
+        const newEntry = new StockEntry({
+            vehicle: vehicle._id,
+            vendor: previousTrans.vendor,
+            type: "return",
+            billNo: billNo,
+            date: new Date(date),
+            amount: previousTrans.amount,
+            exShowroomPrice: previousTrans.exShowroomPrice,
         })
-        res.status(201).json(result)
-    }catch(err){
-        throw err
-    }
+        await newEntry.save({session})
+        vehicle.status = "returned"
+        await vehicle.save({session})
+        return {vehicle, newEntry} 
+    })
+    res.status(201).json(result)
 }
