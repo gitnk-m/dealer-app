@@ -1,0 +1,1 @@
+export default { testEnvironment: "node", transform: {}, setuoFiles:[ "./tests/setup.js" ] };
