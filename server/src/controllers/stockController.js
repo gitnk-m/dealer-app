@@ -92,7 +92,7 @@ export const stockReturn = async(req, res) => {
             err.status = 409;
             throw err;
         }
-        const previousTrans = StockEntry.findOne({ vehicle: vehicle._id, type: "purchase"})
+        const previousTrans = await StockEntry.findOne({ vehicle: vehicle._id, type: "purchase"})
             .sort({ date: -1, createdAt: -1 })
             .session(session)
         if (!previousTrans) {
@@ -108,11 +108,12 @@ export const stockReturn = async(req, res) => {
             date: new Date(date),
             amount: previousTrans.amount,
             exShowroomPrice: previousTrans.exShowroomPrice,
+            createdBy: req.user.id
         })
         await newEntry.save({session})
         vehicle.status = "returned"
         await vehicle.save({session})
-        return {vehicle, newEntry} 
+        return {vehicle, entry: newEntry} 
     })
     res.status(201).json(result)
 }
